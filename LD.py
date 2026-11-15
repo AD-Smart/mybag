@@ -5,41 +5,33 @@ import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext
 
-class MinecraftPydroidApp:
+class MinecraftJsonPasteApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Minecraft Natives Downloader")
-        self.root.geometry("380x520")
+        self.root.title("Minecraft Windows Natives Downloader")
+        self.root.geometry("380x620")
         
-        # عنوان التطبيق
-        title_lbl = tk.Label(root, text="تحميل Windows Natives (ماينكرافت)", font=("Arial", 11, "bold"), fg="#2196F3")
-        title_lbl.pack(pady=10)
+        title_lbl = tk.Label(root, text="تحميل Windows Natives (لصق JSON)", font=("Arial", 11, "bold"), fg="#2196F3")
+        title_lbl.pack(pady=8)
         
-        # اختيار ملف الـ JSON عبر زر التصفح
-        lbl_file = tk.Label(root, text="ملف JSON الخاص بالنسخة:", font=("Arial", 10))
-        lbl_file.pack(anchor="w", padx=15, pady=(5, 2))
+        # صندوق لصق كود الـ JSON
+        lbl_json = tk.Label(root, text="ألصق محتوى ملف الـ JSON هنا:", font=("Arial", 9, "bold"))
+        lbl_json.pack(anchor="w", padx=15, pady=(5, 2))
         
-        frame_file = tk.Frame(root)
-        frame_file.pack(fill="x", padx=15, pady=5)
-        
-        # حقل للقراءة فقط يظهر المسار الذي اخترته من مدير الملفات
-        self.ent_file = tk.Entry(frame_file, font=("Arial", 9), state="readonly", readonlybackground="#f0f0f0")
-        self.ent_file.pack(side="left", expand=True, fill="x", ipady=4)
-        
-        btn_browse = tk.Button(frame_file, text="تصفح...", command=self.browse_file, font=("Arial", 9, "bold"), bg="#2196F3", fg="white")
-        btn_browse.pack(side="right", padx=(5, 0))
+        self.txt_json = scrolledtext.ScrolledText(root, height=11, font=("Courier", 8))
+        self.txt_json.pack(fill="both", expand=True, padx=15, pady=5)
         
         # اختيار مجلد الحفظ
-        lbl_out = tk.Label(root, text="مجلد حفظ الملفات:", font=("Arial", 10))
-        lbl_out.pack(anchor="w", padx=15, pady=(10, 2))
+        lbl_out = tk.Label(root, text="مجلد حفظ الملفات:", font=("Arial", 9, "bold"))
+        lbl_out.pack(anchor="w", padx=15, pady=(8, 2))
         
         frame_out = tk.Frame(root)
         frame_out.pack(fill="x", padx=15, pady=5)
         
         self.ent_out = tk.Entry(frame_out, font=("Arial", 9))
-        self.ent_out.pack(side="left", expand=True, fill="x", ipady=4)
+        self.ent_out.pack(side="left", expand=True, fill="x", ipady=3)
         
-        # تعيين مسار التحميل الافتراضي في ذاكرة الهاتف الداخلية إن وجد
+        # المسار الافتراضي للحفظ في ذاكرة الهاتف إن وجد
         default_out = "/sdcard/Download/windows_natives" if os.path.exists("/sdcard/Download") else "windows_natives"
         self.ent_out.insert(0, default_out)
         
@@ -48,28 +40,14 @@ class MinecraftPydroidApp:
         
         # زر بدء التحميل
         self.btn_start = tk.Button(root, text="بدء تحميل Windows Natives", bg="#4CAF50", fg="white", font=("Arial", 11, "bold"), command=self.start_download_thread)
-        self.btn_start.pack(fill="x", padx=15, pady=15, ipady=5)
+        self.btn_start.pack(fill="x", padx=15, pady=12, ipady=4)
         
         # صندوق عرض سجل العمليات
-        lbl_log = tk.Label(root, text="سجل العمليات:", font=("Arial", 10, "bold"))
+        lbl_log = tk.Label(root, text="سجل العمليات:", font=("Arial", 9, "bold"))
         lbl_log.pack(anchor="w", padx=15)
         
-        self.txt_log = scrolledtext.ScrolledText(root, height=10, state="disabled", font=("Courier", 8))
-        self.txt_log.pack(fill="both", expand=True, padx=15, pady=(5, 15))
-
-    def browse_file(self):
-        # فتح مدير الملفات في مجلد التحميلات افتراضياً لتسهيل الوصول لملفات الـ JSON
-        initial_dir = "/sdcard/Download" if os.path.exists("/sdcard/Download") else "/"
-        filename = filedialog.askopenfilename(
-            title="اختر ملف JSON للنسخة",
-            initialdir=initial_dir,
-            filetypes=[("JSON Files", "*.json"), ("All Files", "*.*")]
-        )
-        if filename:
-            self.ent_file.config(state="normal")
-            self.ent_file.delete(0, tk.END)
-            self.ent_file.insert(0, filename)
-            self.ent_file.config(state="readonly")
+        self.txt_log = scrolledtext.ScrolledText(root, height=7, state="disabled", font=("Courier", 8))
+        self.txt_log.pack(fill="both", expand=True, padx=15, pady=(5, 10))
 
     def browse_output(self):
         initial_dir = "/sdcard/Download" if os.path.exists("/sdcard/Download") else "/"
@@ -90,11 +68,11 @@ class MinecraftPydroidApp:
             pass
 
     def start_download_thread(self):
-        json_path = self.ent_file.get().strip()
+        json_text = self.txt_json.get("1.0", tk.END).strip()
         output_dir = self.ent_out.get().strip()
         
-        if not json_path or not os.path.exists(json_path):
-            messagebox.showerror("خطأ", "الرجاء الضغط على زر (تصفح...) لاختيار ملف الـ JSON أولاً!")
+        if not json_text:
+            messagebox.showerror("خطأ", "الرجاء لصق كود الـ JSON في الصندوق أولاً!")
             return
             
         if not output_dir:
@@ -105,18 +83,17 @@ class MinecraftPydroidApp:
         self.txt_log.delete(1.0, tk.END)
         self.txt_log.config(state="disabled")
         
-        # تشغيل التحميل في خيط منفصل لكي لا تتجمد الواجهة
-        thread = threading.Thread(target=self.download_natives, args=(json_path, output_dir))
-        thread.daemon = True
+        # تشغيل التحميل في خلفية منفصلة لمنع تجمد الواجهة
+        thread = threading.Thread(target=self.download_natives, args=(json_text, output_dir))
+        thread.daemon.True
         thread.start()
 
-    def download_natives(self, json_file_path, output_dir):
+    def download_natives(self, json_text, output_dir):
         try:
-            self.log("[*] جاري قراءة ملف الـ JSON...")
-            with open(json_file_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+            self.log("[*] جاري تحليل كود الـ JSON...")
+            data = json.loads(json_text)
         except Exception as e:
-            self.log(f"[-] خطأ في قراءة الملف: {e}")
+            self.log(f"[-] خطأ: كود الـ JSON غير صالح (تأكد من نسخه كاملاً)!")
             self.root.after(0, lambda: self.btn_start.config(state="normal", text="بدء تحميل Windows Natives"))
             return
 
@@ -124,7 +101,7 @@ class MinecraftPydroidApp:
         os.makedirs(output_dir, exist_ok=True)
         
         downloaded_count = 0
-        self.log("[+] جاري فحص واستخراج ملفات Windows Natives فقط...")
+        self.log("[+] جاري استخراج وتحميل ملفات Windows Natives فقط...")
 
         for lib in libraries:
             natives = lib.get("natives", {})
@@ -169,5 +146,5 @@ class MinecraftPydroidApp:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = MinecraftPydroidApp(root)
+    app = MinecraftJsonPasteApp(root)
     root.mainloop()
