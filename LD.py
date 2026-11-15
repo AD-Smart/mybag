@@ -3,7 +3,7 @@ import json
 import urllib.request
 import threading
 import tkinter as tk
-from tkinter import filedialog, messagebox, scrolledtext
+from tkinter import messagebox, scrolledtext, filedialog
 
 class MinecraftJsonPasteApp:
     def __init__(self, root):
@@ -83,9 +83,9 @@ class MinecraftJsonPasteApp:
         self.txt_log.delete(1.0, tk.END)
         self.txt_log.config(state="disabled")
         
-        # تشغيل التحميل في خلفية منفصلة لمنع تجمد الواجهة
+        # تشغيل التحميل في خلفية منفصلة لمنع تجمد الواجهة (تم تصحيح السطر هنا)
         thread = threading.Thread(target=self.download_natives, args=(json_text, output_dir))
-        thread.daemon.True
+        thread.daemon = True
         thread.start()
 
     def download_natives(self, json_text, output_dir):
@@ -93,7 +93,7 @@ class MinecraftJsonPasteApp:
             self.log("[*] جاري تحليل كود الـ JSON...")
             data = json.loads(json_text)
         except Exception as e:
-            self.log(f"[-] خطأ: كود الـ JSON غير صالح (تأكد من نسخه كاملاً)!")
+            self.log("[-] خطأ: كود الـ JSON غير صالح (تأكد من نسخه كاملاً)!")
             self.root.after(0, lambda: self.btn_start.config(state="normal", text="بدء تحميل Windows Natives"))
             return
 
