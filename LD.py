@@ -11,17 +11,18 @@ class MinecraftNativesApp:
         self.root.title("Minecraft Windows Natives Downloader")
         self.root.geometry("480x500")
         
-        # اختيار ملف الـ JSON
+        # اختيار ملف الـ JSON (زر الاستعراض فقط بدون كتابة يدوية)
         self.lbl_file = tk.Label(root, text="اختر ملف JSON الخاص بالنسخة:", font=("Arial", 10, "bold"))
         self.lbl_file.pack(anchor="w", padx=15, pady=(15, 5))
         
         self.frame_file = tk.Frame(root)
         self.frame_file.pack(fill="x", padx=15, pady=5)
         
-        self.ent_file = tk.Entry(self.frame_file, width=35, font=("Arial", 10))
+        # جعل الحقل للقراءة فقط (غير قابل للكتابة اليدوية)
+        self.ent_file = tk.Entry(self.frame_file, width=33, font=("Arial", 10), state="readonly", readonlybackground="white")
         self.ent_file.pack(side="left", expand=True, fill="x")
         
-        self.btn_browse = tk.Button(self.frame_file, text="استعراض...", command=self.browse_file, font=("Arial", 9))
+        self.btn_browse = tk.Button(self.frame_file, text="استعراض...", command=self.browse_file, font=("Arial", 9), bg="#2196F3", fg="white")
         self.btn_browse.pack(side="right", padx=(8, 0))
         
         # اختيار مجلد الحفظ
@@ -31,7 +32,7 @@ class MinecraftNativesApp:
         self.frame_out = tk.Frame(root)
         self.frame_out.pack(fill="x", padx=15, pady=5)
         
-        self.ent_out = tk.Entry(self.frame_out, width=35, font=("Arial", 10))
+        self.ent_out = tk.Entry(self.frame_out, width=33, font=("Arial", 10))
         self.ent_out.pack(side="left", expand=True, fill="x")
         self.ent_out.insert(0, "windows_natives")
         
@@ -50,10 +51,16 @@ class MinecraftNativesApp:
         self.txt_log.pack(fill="both", expand=True, padx=15, pady=(5, 15))
 
     def browse_file(self):
-        filename = filedialog.askopenfilename(title="اختر ملف JSON", filetypes=[("JSON Files", "*.json"), ("All Files", "*.*")])
+        filename = filedialog.askopenfilename(
+            title="اختر ملف JSON", 
+            filetypes=[("JSON Files", "*.json"), ("All Files", "*.*")]
+        )
         if filename:
+            # السماح بالتعديل المؤقت لإدخال المسار المختار برمجياً ثم قفله مجدداً
+            self.ent_file.config(state="normal")
             self.ent_file.delete(0, tk.END)
             self.ent_file.insert(0, filename)
+            self.ent_file.config(state="readonly")
 
     def browse_output(self):
         dirname = filedialog.askdirectory(title="اختر مجلد حفظ النتائج")
@@ -74,7 +81,7 @@ class MinecraftNativesApp:
         output_dir = self.ent_out.get().strip()
         
         if not json_path or not os.path.exists(json_path):
-            messagebox.showerror("خطأ", "الرجاء اختيار ملف JSON صحيح أولاً!")
+            messagebox.showerror("خطأ", "الرجاء النقر على زر (استعراض...) لاختيار ملف الـ JSON أولاً!")
             return
             
         if not output_dir:
